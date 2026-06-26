@@ -1,58 +1,140 @@
-# playcaptcha
+<p align="center">
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" width="64" />
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png" width="64" />
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png" width="64" />
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png" width="64" />
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png" width="64" />
+</p>
 
-A captcha that's a claw machine.
+<h1 align="center">PokéGarra</h1>
 
-It asks for a toy. You drive the claw with the joystick (or arrow keys), hit the red button, the claw dives down and grabs whatever's under it. Carry the catch over the hatch and drop it in. Right toy and you're verified, wrong toy bounces off the lid and goes back on the pile.
+<p align="center">
+  <strong>Colección Kanto · 151 Pokémon · Máquina de garra · Speedrun · Leaderboard</strong>
+</p>
 
-No physics engine behind it, just damped springs and scripted phases in one rAF loop. React state only changes when the phase changes, the rest is transforms written through refs, so it stays smooth even on weak devices.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-0a84ff?logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7-3178c6?logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-6-df50ff?logo=vite" alt="Vite" />
+  <img src="https://img.shields.io/badge/Pokémon-Kanto_151-ffd60a" alt="Kanto 151" />
+</p>
 
-Obvious but worth saying: this checks that someone is *playing*, not who they are. Keep it in front of your real checks, don't replace them with it.
+---
 
-<video src="https://github.com/user-attachments/assets/bc6bd3f6-173a-4aa8-a2ac-09cb47742179" controls muted loop width="420"></video>
+## Qué es PokéGarra
 
-Try it live: https://feralui.vercel.app/#/captcha
+Una app React local donde **atrapas Pokémon con una máquina de garra virtual**. Completa la Pokédex de Kanto (los 151 originales), compite contra el cronómetro en modo speedrun y compara tus marcas con una clasificación de bots.
 
-This is part of [FeralUI](https://github.com/mortspace/feralui).
+Todo en español, tema oscuro, responsive para escritorio y móvil.
 
-## setup
+| <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/144.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/145.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/146.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png" width="48" /> | <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png" width="48" /> |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+---
+
+## Cómo arrancar
 
 ```bash
-npm install playcaptcha
+cd app
+npm install
+npm run dev
 ```
 
-Then copy the `assets/` folder into whatever your app serves statically. The component looks for the toy renders under `/toys/` and the logo at `/playcaptcha.svg` by default, `assetBase` moves that.
+Se abre en `http://localhost:5173`.
 
-```tsx
-import { ClawCaptcha } from 'playcaptcha'
-import 'playcaptcha/clawcaptcha.css'
+---
 
-<ClawCaptcha onVerify={() => unlock()} />
+## Funcionalidades
+
+### Máquina de garra
+- **Joystick** en pantalla o **teclas de flecha** para mover la garra. Espacio para agarrar.
+- Animaciones completas: física de colisión, bandeja de salida, confeti al acertar, vibración al fallar.
+- Pool de 14 Pokémon rotatorios en la máquina. Se reponen automáticamente al completarlos.
+
+### Colección Kanto (151 cartas)
+- Cuadrícula de **151 cartas coleccionables** con diseño tipo TCG.
+- Cada carta muestra: sprite oficial, nombre, tipo, rareza y poder.
+- Las no capturadas salen en **escala de grises**. Las capturadas se revelan con animación.
+- **Click en cualquier carta capturada** abre un modal detallado con información completa, efecto holográfico y diseño inspirado en cartas Pokémon.
+
+### Sistema de rareza y poder
+| Rareza | Color | Ejemplos |
+|---|---|---|
+| Común | Gris | Pikachu, Charmander, Bulbasaur |
+| Raro | Verde | Jigglypuff, Psyduck, Snorlax |
+| Épico | Púrpura | Gengar, Dragonite, Charizard |
+| Legendario | Dorado | Mew, Mewtwo, Articuno, Zapdos, Moltres |
+
+Cada Pokémon tiene un valor de **poder** (200–680) que suma puntos al capturarlo.
+
+### Modo Speedrun — Captura los 151
+- Actívalo desde el botón **"Desafío: Capturar los 151"** en el panel lateral.
+- La colección se resetea a cero y arranca un **cronómetro en tiempo real**.
+- Barra de progreso y contador visible en todo momento.
+- Al llegar a 151, el cronómetro **se para automáticamente**.
+- Se guarda tu **mejor marca personal** en el navegador.
+
+### Clasificación Online (bots)
+- **18 bots falsos** con nombres de personajes de Pokémon y tiempos entre 18 y 55 minutos.
+- Top 3 con colores **oro, plata y bronce**.
+- Tu entrada resaltada en azul.
+- Da sensación de competencia real sin necesidad de backend.
+
+### Sonido y estética
+- **Cry OGG oficial** de cada Pokémon al capturarlo (desde PokeAPI CDN).
+- Sprites **official-artwork** de alta calidad para la máquina.
+- Sprites **HOME** (512px) disponibles para vista detallada.
+- Efectos de confeti, vibración, holograma y animaciones fluidas en toda la UI.
+- Tema oscuro unificado con tipografía Inter y paleta de colores iOS.
+
+---
+
+## Estructura del proyecto
+
+```
+app/
+├── src/
+│   ├── features/
+│   │   └── playcaptcha/
+│   │       ├── ClawCaptcha.tsx    ← Máquina de garra (componente core)
+│   │       ├── clawArt.ts         ← Renderizado canvas de las piezas
+│   │       ├── clawcaptcha.css    ← Estilos de la garra
+│   │       ├── kantoPokedex.ts    ← Datos de los 151 Pokémon
+│   │       ├── toys.ts            ← Catálogo con URLs de sprites/cries
+│   │       └── CardModal.tsx      ← Modal de carta detallada
+│   ├── App.tsx                    ← Lógica principal, speedrun, leaderboard
+│   ├── main.tsx                   ← Entry point
+│   └── style.css                  ← Estilos globales + cartas + speedrun
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
 
-Leave `target` off and every mount asks for a different random toy. Or pin one:
+---
 
-```tsx
-<ClawCaptcha target="duck" onVerify={() => unlock()} />
-```
+## APIs y recursos utilizados
 
-The 12 toy ids: duck, bear, panda, bunny, dino, penguin, fox, frog, whale, cat, puppy, unicorn.
+| Recurso | URL base |
+|---|---|
+| Sprites oficiales | `PokeAPI/sprites/other/official-artwork/{id}.png` |
+| Sprites HOME (512px) | `PokeAPI/sprites/other/home/{id}.png` |
+| Sonidos (cries) | `PokeAPI/cries/main/cries/pokemon/latest/{id}.ogg` |
 
-Other props: `title` (the heading), `assetBase`, `className`. That's all of them.
+Todo desde el CDN gratuito de [PokeAPI](https://github.com/PokeAPI/sprites), sin dependencias externas.
 
-## theming
+---
 
-CSS vars on any ancestor:
+## Ideas futuras
 
-```css
-:root {
-  --clawcap-bg: #ffffff;     /* card */
-  --clawcap-ink: #1c1c1e;    /* text */
-  --clawcap-muted: #8a8a8e;
-  --clawcap-accent: #1c1c1e; /* dialog button + focus ring */
-  --clawcap-action: #ff5159; /* the big red button */
-}
-```
+- [ ] Mapa de Kanto con gimnasios y zonas
+- [ ] Minijuego de Memoria Pokéball
+- [ ] Minijuego Laberinto Safari
+- [ ] Sistema de evoluciones
+- [ ] Modo batalla con los Pokémon capturados
+- [ ] Sincronización en la nube (Firebase / Supabase)
 
-Keyboard runs the whole thing (arrows + space/enter), the joystick is a real slider role, and prefers-reduced-motion swaps the decorative stuff (entrance tumble, confetti, ring pulse) for instant state changes.
+---
 
-MIT. Toy renders live in assets/toys.
+## Licencia
+
+MIT — diviértete.

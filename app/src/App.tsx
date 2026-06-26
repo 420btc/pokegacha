@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ClawCaptcha } from './features/playcaptcha/ClawCaptcha.tsx'
 import { TOY_META, RARITY_LABEL, RARITY_ORDER, RARITY_COLOR, buildPool, type ToyId, type Rarity } from './features/playcaptcha/toys.ts'
 import { KANTO } from './features/playcaptcha/kantoPokedex.ts'
@@ -276,7 +276,7 @@ function App() {
     clawKey.current++
   }, [target, captures, machinePool, advanceTarget, playCry])
 
-  const poolForClaw = buildPool(machinePool)
+  const poolForClaw = useMemo(() => buildPool(machinePool), [machinePool])
 
   const sortedBots = [...bots].sort((a, b) => a.time - b.time)
 
