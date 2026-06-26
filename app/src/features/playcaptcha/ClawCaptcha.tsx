@@ -220,6 +220,8 @@ export interface ClawCaptchaProps {
   target?: ToyId
   /** The pool of toys that appear in the machine pile. Falls back to TOY_SET. */
   pool?: Array<{ toy: ToyId; w: number }>
+  /** Multiplicador de dificultad: >1 = joystick mas lento, garra mas inestable. */
+  difficulty?: number
   /** Fired once when the right toy lands in the tray. */
   onVerify?: () => void
   /** Heading shown above the machine. */
@@ -230,6 +232,7 @@ export interface ClawCaptchaProps {
 export function ClawCaptcha({
   target: targetProp,
   pool: poolProp,
+  difficulty = 1,
   onVerify,
   title = 'Demuestra que eres humano',
   className,
@@ -290,6 +293,8 @@ export function ClawCaptcha({
     swallow: 0, // 0..1 shrink+fade as a WRONG toy is dismissed off the lid
     released: false, // the claw has let go this drop (one-shot)
     mouthY: 353, // the hatch rim line in machine space — measured at release time
+    tremor: 0, // accumulated tremor shake intensity when carrying heavy/epic/legendary
+    ghostPhase: 0, // oscillating timer for ghost-type fade effects (0..1 period)
   })
 
   const softRef = useRef<Soft[] | null>(null)
@@ -418,6 +423,15 @@ export function ClawCaptcha({
         if (!el) continue
         const b = soft[i]
         el.style.transform = `translate(${b.dx.toFixed(2)}px, ${(b.dy + b.ey).toFixed(2)}px) rotate(${(pile[i].rot + b.rot).toFixed(2)}deg) scale(${(1 - b.sq * 0.6).toFixed(3)}, ${(1 + b.sq).toFixed(3)})`
+        // ── ghost phase ─────────────────────────────────────────
+        // Los tipo Fantasma (Gengar, Gastly, Haunter) se desvanecen ciclicamente
+        const tm = TOY_META[pile[i].toy]
+        if (tm.category.includes('Fantasma')) {
+          const ghostMask = 0.4 + 0.6 * Math.sin(s.ghostPhase * Math.PI * 0.7 + i * 0.8)
+          el.style.opacity = ghostMask.toFixed(2)
+        } else {
+          el.style.opacity = ''
+        }
       }
       if (s.carried >= 0 && carriedEl.current) {
         const w = pile[s.carried].w
@@ -505,7 +519,33 @@ export function ClawCaptcha({
         s.vx += s.drive * 720 * dt
         s.vx *= Math.exp(-5.5 * dt)
         s.x = Math.min(CLAW_MAX, Math.max(CLAW_MIN, s.x + s.vx * dt))
+        // ── ghost phase ─────────────────────────────────────────────
+      // Fantasmas (Gengar, Gastly, Haunter) se vuelven translucidos periodicamente
+      s.ghostPhase += dt * (0.8 + difficulty * 0.3)
+
+      if (ph === 'idle') {
+          // disipar temblor al no estar cargando
+          s.tremor *= Math.pow(0.08, dt)
+          s.y = HOME_Y
+        }
         if (ph === 'carry') {
+          // ── tremblor por Pokemon pesado ──────────────────────────────
+          // Mewtwo, Dragonite, Gengar... hacen temblar la garra al cargarlos.
+          // El temblor escala con weight, tremorChance y el multiplicador de dificultad.
+          const tm = TOY_META[target]
+          const tremorMax = (tm.weight * 1.2 + tm.tremorChance * 11) * difficulty
+          // aumento gradual de temblor al iniciar el carry
+          s.tremor += (tremorMax - s.tremor) * (1 - Math.exp(-1.8 * dt))
+          // jitter pseudo-aleatorio: se resetea por tramos para que sea impredecible
+          const tPhase = (now / 1000) * (2.8 + tm.weight * 3 + tm.tremorChance * 15) * difficulty
+          const tj = Math.sin(tPhase * 7.1) * 0.5 + Math.sin(tPhase * 13.7 + 1.3) * 0.5
+          const tremorX = tj * s.tremor * 1.8
+          const tremorY = Math.abs(tj) * s.tremor * 2.2
+          // aplicar al sway del pendulo
+          s.sway += tremorX * dt * 60
+          // la posicion Y tiembla ligeramente
+          s.y = HOME_Y + tremorY * Math.sin(tPhase * 9.3) * 1.2
+
           // the toy hangs FROM the claw, so it trails the sway a beat behind —
           // a lagged follower on its rotation reads as real dangling weight
           s.xrot += (s.sway * 0.5 - s.xrot) * (1 - Math.exp(-6 * dt))

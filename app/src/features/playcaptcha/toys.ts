@@ -3,6 +3,8 @@
 
 import { KANTO, TYPE_COLOR, type KantoEntry, RARITY_LABEL, type Rarity } from './kantoPokedex.ts'
 
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
+
 export type { Rarity }
 export { RARITY_LABEL, RARITY_ORDER } from './kantoPokedex.ts'
 
@@ -41,6 +43,10 @@ export interface ToyMeta {
   power: number
   rarity: Rarity
   pokedexNum: number
+  /** Peso relativo (0-1): cuanto mas pesado, mas tiembla la garra al llevarlo. */
+  weight: number
+  /** Probabilidad de que la garra tiemble fuerte al cargarlo (base, 0-0.15). */
+  tremorChance: number
 }
 
 function hexToRgba(hex: string, alpha: number) {
@@ -52,6 +58,10 @@ function hexToRgba(hex: string, alpha: number) {
 
 function buildMeta(e: KantoEntry): ToyMeta {
   const accent = TYPE_COLOR[e.type] || '#8e8e93'
+  // peso relativo basado en el poder: un Bulbasaur (318) es ligero, un Mewtwo (680) pesa
+  const weight = clamp(e.power / 720, 0.28, 1)
+  // los legendarios y epicos tiemblan mas: factor basado en rareza
+  const tremorBase = { comun: 0.03, raro: 0.06, epico: 0.10, legendario: 0.15 }[e.rarity]
   return {
     label: e.name,
     accent,
@@ -65,6 +75,8 @@ function buildMeta(e: KantoEntry): ToyMeta {
     power: e.power,
     rarity: e.rarity,
     pokedexNum: e.id,
+    weight,
+    tremorChance: tremorBase,
   }
 }
 

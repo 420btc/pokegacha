@@ -278,6 +278,14 @@ function App() {
 
   const poolForClaw = useMemo(() => buildPool(machinePool), [machinePool])
 
+  /** Dificultad progresiva: 1.0 al inicio, hasta ~2.4 al completar 90+ Pokemon.
+      En speedrun escala un 20% mas rapido. */
+  const difficulty = useMemo(() => {
+    const base = 1 + (captures.length / 151) * 1.4
+    const speedrunBonus = speedrunActive ? 1.2 : 1
+    return Math.round(base * speedrunBonus * 100) / 100
+  }, [captures.length, speedrunActive])
+
   const sortedBots = [...bots].sort((a, b) => a.time - b.time)
 
   return (
@@ -484,6 +492,13 @@ function App() {
                   </span>
                 </div>
 
+                <div className="info-box">
+                  <strong>Dificultad</strong>
+                  <span style={{ fontSize: '0.75rem', color: difficulty > 1.6 ? '#ffd60a' : 'var(--pk-muted)' }}>
+                    Nivel {difficulty.toFixed(1)} · {difficulty > 1.6 ? 'Modo dificil' : difficulty > 1.2 ? 'Modo medio' : 'Modo facil'}
+                  </span>
+                </div>
+
                 {/* boton de desafio speedrun */}
                 <button className="speedrun-btn speedrun-btn--start" onClick={startSpeedrun}>
                   Desafio: Capturar los 151
@@ -504,6 +519,7 @@ function App() {
               key={clawKey.current}
               target={target}
               pool={poolForClaw}
+              difficulty={difficulty}
               title={speedrunActive ? 'Captura los 151!' : 'Atrapa al Pokemon correcto'}
               onVerify={handleVerify}
             />
