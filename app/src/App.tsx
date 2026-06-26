@@ -87,6 +87,18 @@ function PokeballIcon({ size = 22 }: { size?: number }) {
   )
 }
 
+function RankingIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6 21H3V12H6V21ZM13.5 21H10.5V3H13.5V21ZM21 21H18V8H21V21Z"
+        fill="currentColor"
+        fillOpacity="0.9"
+      />
+    </svg>
+  )
+}
+
 function App() {
   const [captures, setCaptures] = useState<ToyId[]>(() => {
     try {
@@ -132,7 +144,20 @@ function App() {
   const [speedrunElapsed, setSpeedrunElapsed] = useState(0)
   const speedrunRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [bots] = useState<SpeedrunEntry[]>(() => generateBots())
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [rankingOpen, setRankingOpen] = useState(false)
+  const rankingRef = useRef<HTMLDivElement>(null!)
+
+  // cerrar ranking al hacer click fuera
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (rankingOpen && rankingRef.current && !rankingRef.current.contains(e.target as Node)) {
+        setRankingOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [rankingOpen])
+
   const [personalBest, setPersonalBest] = useState<number | null>(() => {
     try {
       const v = localStorage.getItem('pokegarra_pb')
@@ -167,7 +192,7 @@ function App() {
       setSpeedrunResult(time)
       setSpeedrunActive(false)
       setSpeedrunElapsed(time)
-      setShowLeaderboard(true)
+      setRankingOpen(true)
       if (personalBest === null || time < personalBest) {
         setPersonalBest(time)
         localStorage.setItem('pokegarra_pb', String(time))
@@ -189,7 +214,7 @@ function App() {
     setSpeedrunStartedAt(Date.now())
     setSpeedrunResult(null)
     setSpeedrunElapsed(0)
-    setShowLeaderboard(false)
+    setRankingOpen(false)
   }
 
   const cancelSpeedrun = () => {
@@ -371,47 +396,11 @@ function App() {
                 )}
 
                 <button
-                  className="speedrun-btn speedrun-btn--leaderboard"
-                  onClick={() => setShowLeaderboard(!showLeaderboard)}
-                >
-                  {showLeaderboard ? 'Ocultar clasificacion' : 'Ver clasificacion'}
-                </button>
-
-                <button
                   className="speedrun-btn speedrun-btn--again"
                   onClick={startSpeedrun}
                 >
                   Intentar otra vez
                 </button>
-              </div>
-            )}
-
-            {/* leaderboard */}
-            {showLeaderboard && (
-              <div className="leaderboard-card">
-                <div className="panel-head">
-                  <span className="pill pill--online">Online</span>
-                  <h1>Clasificacion</h1>
-                </div>
-
-                {/* entrada personal si hay resultado */}
-                {speedrunResult !== null && (
-                  <div className="leaderboard-row leaderboard-row--you">
-                    <span className="leaderboard-rank">—</span>
-                    <span className="leaderboard-name">Tu</span>
-                    <span className="leaderboard-time">{fmtTime(speedrunResult)}</span>
-                  </div>
-                )}
-
-                {sortedBots.slice(0, 10).map((bot, i) => (
-                  <div key={bot.name} className="leaderboard-row">
-                    <span className={`leaderboard-rank${i < 3 ? ` leaderboard-rank--top${i + 1}` : ''}`}>
-                      {i + 1}
-                    </span>
-                    <span className="leaderboard-name">{bot.name}</span>
-                    <span className="leaderboard-time">{fmtTime(bot.time)}</span>
-                  </div>
-                ))}
               </div>
             )}
 
@@ -590,6 +579,58 @@ function App() {
       {selectedCard && (
         <CardModal id={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
+
+      {/* ranking flotante */}
+      <div className="ranking-float" ref={rankingRef}>
+        <button
+          className={`ranking-btn${rankingOpen ? ' ranking-btn--open' : ''}`}
+          onClick={() => setRankingOpen(!rankingOpen)}
+          aria-label="Ver clasificacion"
+          title="Clasificacion"
+        >
+          <RankingIcon size={20} />
+          <span className="ranking-btn-label">Ranking</span>
+        </button>
+
+        {rankingOpen && (
+          <div className="ranking-popover">
+            <div className="ranking-popover-head">
+              <span className="pill pill--online">Online</span>
+              <span className="ranking-popover-title">Clasificacion</span>
+            </div>
+
+            {speedrunResult !== null && (
+              <div className="leaderboard-row leaderboard-row--you">
+                <span className="leaderboard-rank">—</span>
+                <span className="leaderboard-name">Tu</span>
+                <span className="leaderboard-time">{fmtTime(speedrunResult)}</span>
+              </div>
+            )}
+
+            {personalBest !== null && speedrunResult !== personalBest && (
+              <div className="ranking-pb-inline">
+                <span>Tu mejor marca: {fmtTime(personalBest)}</span>
+              </div>
+            )}
+
+            <div className="ranking-divider" />
+
+            {sortedBots.slice(0, 8).map((bot, i) => (
+              <div key={bot.name} className="leaderboard-row">
+                <span className={`leaderboard-rank${i < 3 ? ` leaderboard-rank--top${i + 1}` : ''}`}>
+                  {i + 1}
+                </span>
+                <span className="leaderboard-name">{bot.name}</span>
+                <span className="leaderboard-time">{fmtTime(bot.time)}</span>
+              </div>
+            ))}
+
+            <div className="ranking-popover-foot">
+              <span>Actualizado cada dia</span>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   )
 }
