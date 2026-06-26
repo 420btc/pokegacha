@@ -1,7 +1,7 @@
 /* Catalogo de juguetes — generado desde kantoPokedex.ts.
    Cada Pokemon tiene: sprite oficial, sprite HOME (512px), cry OGG, showdown GIF. */
 
-import { KANTO, TYPE_COLOR, type KantoEntry, RARITY_LABEL, type Rarity } from './kantoPokedex.ts'
+import { KANTO, TYPE_COLOR, type KantoEntry, type Rarity } from './kantoPokedex.ts'
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
 
